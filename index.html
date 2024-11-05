@@ -6,33 +6,15 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
   <style>
     body {
-      margin: 0;
-      height: 100vh;
-      width: 100vw;
+      margin: 0px;
+      height: 100%;
+      width: 100%;
     }
     #map {
       position: absolute;
       width: 100%;
-      height: 100%;
-    }
-    .legend {
-      background: white;
-      padding: 20px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 16px;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .legend-color {
-      width: 25px;
-      height: 25px;
-      margin-right: 10px;
+      top: 0px;
+      bottom: 0;
     }
   </style>
 </head>
@@ -76,73 +58,38 @@
       }).addTo(map);
     });
 
-    // Legend
-    const legend = L.control({ position: "topright" });
-
-    legend.onAdd = function(map) {
-      const div = L.DomUtil.create("div", "legend");
-      div.innerHTML += "<h4>Legend</h4>";
-      div.innerHTML += '<div class="legend-item"><img src="waste-bin-icon.png" alt="Waste Container" style="width: 15px; height: 15px; margin-right: 10px;"> Waste Containers</div>';
-      div.innerHTML += '<div class="legend-item"><div class="legend-color" style="background: yellow;"></div> Zones</div>';
-      return div;
-    };
-
-    legend.addTo(map);
-
-    // Set up the waste containers icon
+    // إعداد الأيقونة الخاصة بالحاويات
     const wasteIcon = L.icon({
-      iconUrl: 'waste-bin-icon.png',
-      iconSize: [15, 15],
-      iconAnchor: [15, 15],
-      popupAnchor: [0, -15]
+      iconUrl: 'waste-bin-icon.png', // اسم الأيقونة الموجود في نفس المجلد
+      iconSize: [15, 15], // حجم الأيقونة
+      iconAnchor: [15, 15], // نقطة ارتكاز الأيقونة
+      popupAnchor: [0, -15] // مكان ظهور النافذة المنبثقة بالنسبة للأيقونة
     });
 
-    // Load waste containers data with custom icons
+    // تحميل بيانات حاويات النفايات مع الأيقونات المخصصة
     let wasteContainersLayer;
     $.getJSON("wasteContainer.json", function(WC) {
       wasteContainersLayer = L.geoJson(WC, {
         pointToLayer: function(feature, latlng) {
-          return L.marker(latlng, { icon: wasteIcon });
+          return L.marker(latlng, { icon: wasteIcon }); // استخدام الأيقونة بدلاً من الدائرة
         },
         onEachFeature: function(feature, layer) {
           layer.on("click", function(e) {
-            checkProximity(layer);
             alert("Material: " + feature.properties.TYPE_OF_WA);
           });
         }
       }).addTo(map);
     });
 
-    function checkProximity(clickedMarker) {
-      let minDistance = Infinity;
-      let nearestMarker = null;
-
-      wasteContainersLayer.eachLayer(function(layer) {
-        if (layer !== clickedMarker) {
-          const distance = clickedMarker.getLatLng().distanceTo(layer.getLatLng());
-          if (distance < minDistance) {
-            minDistance = distance;
-            nearestMarker = layer;
-          }
-        }
-      });
-
-      if (nearestMarker) {
-        alert("Proximity to nearest container: " + minDistance.toFixed(2) + " meters");
-      } else {
-        alert("No nearby containers found.");
-      }
-    }
-
     const baseLayers = {};
     const overlays = {
-      "Waste Containers": wasteContainersLayer,
-      "Zones": zonesLayer
+      "Zones": zonesLayer,
+      "Waste Containers": wasteContainersLayer
     };
 
     L.control.layers(baseLayers, overlays).addTo(map);
-    wasteContainersLayer.addTo(map);
     zonesLayer.addTo(map);
+    wasteContainersLayer.addTo(map);
   </script>
 </body>
 </html>
