@@ -45,22 +45,32 @@
       width: 15px;
       height: 15px;
       margin-right: 5px;
-      border-radius: 50%; /* Make the span circular */
+      border-radius: 50%;
     }
 
-    /* Highlight style for the nearest container */
-    .highlight {
-      fillColor: "red"; /* Highlight color */
-      color: "red"; /* Border color */
-      weight: 2; /* Border weight */
-      opacity: 1; /* Full opacity */
-      fillOpacity: 0.8; /* Fill opacity */
+    /* زر تحديد الموقع */
+    #locateButton {
+      position: absolute;
+      top: 210px; /* وضع الزر أسفل المفتاح بشكل أكبر */
+      right: 10px;
+      z-index: 1000;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    #locateButton:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
+  <button id="locateButton">Locate Me</button>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -79,7 +89,7 @@
       maxZoom: 20
     }).addTo(map);
 
-    let wasteContainersLayer; // Declare the layer variable globally
+    let wasteContainersLayer;
 
     $.getJSON("RamallahZones.json", function(RZ) {
       const zonesLayer = L.geoJson(RZ, {
@@ -118,7 +128,6 @@
             let nearestDistance = Infinity;
             let nearestContainer = null;
 
-            // Reset styles of all containers
             wasteContainersLayer.eachLayer(function(otherLayer) {
               otherLayer.setStyle({
                 fillColor: "orange",
@@ -161,14 +170,31 @@
     legend.onAdd = function() {
       const div = L.DomUtil.create('div', 'legend');
       div.innerHTML += '<h4>Legend</h4>';
-      div.innerHTML += '<div><span style="background: orange;"></span> Waste Containers</div>'; // Keep the original color for the dot
+      div.innerHTML += '<div><span style="background: orange;"></span> Waste Containers</div>';
       div.innerHTML += '<div><span style="background: yellow;"></span> Zones</div>';
       return div;
     };
 
     legend.addTo(map);
+
+    // وظيفة الزر لتحديد الموقع
+    document.getElementById("locateButton").onclick = function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const userLatLng = [position.coords.latitude, position.coords.longitude];
+          L.marker(userLatLng).addTo(map).bindPopup("You are here!").openPopup();
+          map.setView(userLatLng, 17); // مركز الخريطة على موقع المستخدم
+        }, function() {
+          alert("Unable to retrieve your location.");
+        });
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    };
   </script>
 </body>
+
+</html>
 
 </html>
 </body>
